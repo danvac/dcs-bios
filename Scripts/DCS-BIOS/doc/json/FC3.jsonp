@@ -1,0 +1,117 @@
+docdata["FC3"] =
+{
+    "String": {
+                            "_ALTITUDE": {
+                                                 "category": "String",
+                                             "control_type": "display",
+                                              "description": "Altitude above Sea Level",
+                                               "identifier": "_ALTITUDE",
+                                                   "inputs": [  ],
+                                                  "outputs": [ {
+                                                                     "address": 9744,
+                                                                 "description": "Altitude above Sea Level",
+                                                                  "max_length": 4,
+                                                                      "suffix": "",
+                                                                        "type": "string"
+                                                             } ]
+                                         },
+                      "_ALTITUDE_RADAR": {
+                                                 "category": "String",
+                                             "control_type": "display",
+                                              "description": "Altitude above Ground",
+                                               "identifier": "_ALTITUDE_RADAR",
+                                                   "inputs": [  ],
+                                                  "outputs": [ {
+                                                                     "address": 9748,
+                                                                 "description": "Altitude above Ground",
+                                                                  "max_length": 4,
+                                                                      "suffix": "",
+                                                                        "type": "string"
+                                                             } ]
+                                         },
+                             "_FUELALL": {
+                                                 "category": "String",
+                                             "control_type": "display",
+                                              "description": "Fuel Remaining",
+                                               "identifier": "_FUELALL",
+                                                   "inputs": [  ],
+                                                  "outputs": [ {
+                                                                     "address": 9768,
+                                                                 "description": "Fuel Remaining",
+                                                                  "max_length": 4,
+                                                                      "suffix": "",
+                                                                        "type": "string"
+                                                             } ]
+                                         },
+                  "_INDICATED_AIRSPEED": {
+                                                 "category": "String",
+                                             "control_type": "display",
+                                              "description": "Indicated Airspeed",
+                                               "identifier": "_INDICATED_AIRSPEED",
+                                                   "inputs": [  ],
+                                                  "outputs": [ {
+                                                                     "address": 9756,
+                                                                 "description": "Indicated Airspeed",
+                                                                  "max_length": 4,
+                                                                      "suffix": "",
+                                                                        "type": "string"
+                                                             } ]
+                                         },
+                          "_MACHNUMBER": {
+                                                 "category": "String",
+                                             "control_type": "display",
+                                              "description": "Mach Number",
+                                               "identifier": "_MACHNUMBER",
+                                                   "inputs": [  ],
+                                                  "outputs": [ {
+                                                                     "address": 9764,
+                                                                 "description": "Mach Number",
+                                                                  "max_length": 4,
+                                                                      "suffix": "",
+                                                                        "type": "string"
+                                                             } ]
+                                         },
+                           "_PILOTNAME": {
+                                                 "category": "String",
+                                             "control_type": "display",
+                                              "description": "Pilot Name",
+                                               "identifier": "_PILOTNAME",
+                                                   "inputs": [  ],
+                                                  "outputs": [ {
+                                                                     "address": 9728,
+                                                                 "description": "Pilot Name",
+                                                                  "max_length": 16,
+                                                                      "suffix": "",
+                                                                        "type": "string"
+                                                             } ]
+                                         },
+                       "_TRUE_AIRSPEED": {
+                                                 "category": "String",
+                                             "control_type": "display",
+                                              "description": "True Airspeed",
+                                               "identifier": "_TRUE_AIRSPEED",
+                                                   "inputs": [  ],
+                                                  "outputs": [ {
+                                                                     "address": 9760,
+                                                                 "description": "True Airspeed",
+                                                                  "max_length": 4,
+                                                                      "suffix": "",
+                                                                        "type": "string"
+                                                             } ]
+                                         },
+                   "_VERTICAL_VELOCITY": {
+                                                 "category": "String",
+                                             "control_type": "display",
+                                              "description": "Vertical Velocity",
+                                               "identifier": "_VERTICAL_VELOCITY",
+                                                   "inputs": [  ],
+                                                  "outputs": [ {
+                                                                     "address": 9752,
+                                                                 "description": "Vertical Velocity",
+                                                                  "max_length": 4,
+                                                                      "suffix": "",
+                                                                        "type": "string"
+                                                             } ]
+                                         }
+              }
+};
