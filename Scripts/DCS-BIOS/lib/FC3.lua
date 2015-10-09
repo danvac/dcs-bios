@@ -77,7 +77,7 @@ moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function()
     fuel = fuel / 100
     _fuel = string.format("%3.1f", math.floor(fuel));
   -- RU planes
-  elseif plane == "MiG-29A" or plane == "Mig-29S" or
+  elseif plane == "MiG-29A" or plane == "MiG-29S" or
          plane == "Su-25" or plane == "Su-25T" or
          plane == "Su-27" or plane == "Su-33" then
     ias = ias * 3.6 -- km/h
@@ -88,7 +88,7 @@ moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function()
     tas = math.floor(tas / 10) * 10
     _indicatedAirspeed = string.format("%4d", ias)
     
-    if plane ~= "Su-27" then
+    if plane ~= "Su-27" or plane ~= "MiG-29A" or plane ~= "MiG-29S" then
       -- tas from 400 like on instrument
       if( tas < 400 ) then tas = 400 end
       _trueAirspeed = string.format("%4d", tas)
