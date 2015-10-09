@@ -13,8 +13,14 @@ end
 a("A-10C", true)
 a("Ka-50", true)
 a("Mi-8MT", true)
+a("MiG-21Bis", true)
 a("P-51D", true)
-a("Su-25T", false)
 a("TF-51D", true)
 a("UH-1H", true)
-a("MiG-21Bis", true)
+
+-- FC3 planes
+a("A-10A", false)
+a("F-15C", false)
+a("Su-25", false)
+a("Su-25T", false)
+a("Su-27", false)
