@@ -42,7 +42,7 @@ moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function()
 
   _pilot = string.format("%16s", pilot)
   -- US planes (knots and feets)
-  if plane == "A-10A" or plane == "F-15C" then
+  if plane == "A-10A" or plane == "F-15C" or plane == "MiG-29G" then
     ias = ias * 1.94384449  -- knots
     tas = tas * 1.94384449  -- knots
     alt = alt * 3.2808399   -- feets
@@ -60,7 +60,7 @@ moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function()
     _verticalVelocity = string.format(" %4.1f", vvi/1000)
    
     -- only A-10A has radar altimeter
-    if plane == "A-10A" then
+    if plane == "A-10A" or plane == "MiG-29G" then
       -- radar altimeter is working to 5000 feets then baro
       if altR < 5000 then _altitudeR = string.format("%4d", altR)
       else _altitudeR = _altitude end
@@ -69,12 +69,17 @@ moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function()
       _trueAirspeed = string.format("%4d", tas)
       _machNumber = string.format("%.2f", mach)
     end
+    if plane == "MiG-29G" then
+      _machNumber = string.format("%.2f", mach)
+    end
     
     -- we want fuel in hundreds
     fuel = fuel / 100
     _fuel = string.format("%3.1f", math.floor(fuel));
   -- RU planes
-  elseif plane == "Su-25" or plane == "Su-25T" or plane == "Su-27" then
+  elseif plane == "MiG-29A" or plane == "Mig-29S" or
+         plane == "Su-25" or plane == "Su-25T" or
+         plane == "Su-27" or plane == "Su-33" then
     ias = ias * 3.6 -- km/h
     tas = tas * 3.6
 
