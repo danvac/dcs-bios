@@ -53,7 +53,7 @@ moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function()
     _indicatedAirspeed = string.format("%4d", ias)
     -- altitude over 10000 feets is shown in hundreds
     if alt < 10000 then _altitude = string.format("%4d", alt)
-    else _altitude = string.format("%4d", alt / 100)
+    else _altitude = string.format("%4d", alt / 100) end
     -- vertical velocity is cut to 6000 fpm as on instruments
     if vvi > 6000 then vvi = 6000
     elseif vvi < -6000 then vvi = -6000 end
