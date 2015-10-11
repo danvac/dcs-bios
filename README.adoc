@@ -22,7 +22,7 @@ Currently, DCS-BIOS supports the following aircraft modules:
 * UH-1H
 * Mig-21Bis (contributed by wraith444)
 * Ka-50 (contributed by airtom)
-* FC3 (contributed by danvac
+* FC3 (contributed by danvac)
 
 If you want to add support for another module, please get in touch.
 

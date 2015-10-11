@@ -1,119 +1,221 @@
 local defineString = BIOS.util.defineString
 local defineIntegerFromGetter = BIOS.util.defineIntegerFromGetter
 
-local _altitude = " ALT"
-local _altitudeR = "RALT"
-local _verticalVelocity = " VVI"
-local _indicatedAirspeed = " IAS"
-local _trueAirspeed = " TAS"
-local _machNumber = "MACH"
-local _fuel = "FUEL"
-local _pilot = ""
+local _pilot = " -------------- "
+local _altitude = " -- "
+local _altitudeG = " ---- "
+local _altitudeS = " ---- "
+local _verticalVelocity = " -- "
+local _indicatedAirspeed = " -- "
+local _trueAirspeed = " -- "
+local _machNumber = " -- "
+local _fuel = " -- "
+local _AoA = " -- "
+local _gLoad = " -- "
+local _radarAltitude = 0
+local _barFuel = 0
+local _barGLoad = 0
+local _barVVI = 8
+
+local function LoGetSelfPlane()
+	local self = LoGetSelfData()
+
+	return self.Name
+end
+
+local function LoGetFuelAll()
+	local eng = LoGetEngineInfo()
+
+	return eng.fuel_internal + eng.fuel_external
+end
+
+local function LoGetGLoad()
+	local au = LoGetAccelerationUnits()
+
+	return au.y
+end
+
+local function BarFuel(fuel, plane)
+	local maxFuel = 1000
+
+	if plane == "A-10A" then maxFuel = 5029
+	elseif plane == "F-15C" then maxFuel = 6103
+	elseif plane == "MiG-29A" or plane == "MiG-29G" then maxFuel = 3380
+	elseif plane == "MiG-29S" then maxFuel = 3500
+	elseif plane == "Su-25" then maxFuel = 2835
+	elseif plane == "Su-25T" then maxFuel = 3790
+	elseif plane == "Su-27" or plane == "Su-33" then maxFuel = 9400
+	end
+
+	local bar = math.ceil((fuel / maxFuel) * 16)
+	if bar > 16 then bar = 16 end
+
+	return bar
+end
+
+local function BarGLoad(gload)
+	local bar = math.floor((gload / 11) * 16)
+
+	if bar < 0 then bar = 0
+	elseif bar > 16 then bar = 16 end
+
+	return bar
+end
+
+local function BarVVI(vvi, plane)
+	local divide = 150
+
+	if plane == "A-10A" or plane == "F-15C" then divide = 30 end
+	local bar = (vvi / divide) * 8
+	if bar < -8 then bar = -8
+	elseif bar < 0 then bar = math.floor(bar)
+	elseif bar > 8 then bar = 8
+	elseif bar > 0 then bar = math.ceil(bar)
+	end
+
+	return bar + 8
+end
+
+local function allowMach(plane)
+  if plane == "A-10A" then return false
+  elseif plane == "Su-25T" then return false
+  else return true end
+end
+
+local function allowTAS(plane)
+  if plane == "Su-25" then return true
+  elseif plane == "Su-25T" then return true
+  else return false end
+end
 
 BIOS.protocol.beginModule("FC3", 0x2600)
 BIOS.protocol.setExportModuleAircrafts(BIOS.FLAMING_CLIFFS_AIRCRAFT)
 
---[[
-LoGetAngleOfAttack() -- (args - 0, results - 1 (rad))
-LoGetAccelerationUnits() -- (args - 0, results - table {x = Nx,y = NY,z = NZ} 1 (G))
-LoGetADIPitchBankYaw()   -- (args - 0, results - 3 (rad))
-LoGetMagneticYaw()       -- (args - 0, results - 1 (rad)
-LoGetGlideDeviation()    -- (args - 0,results - 1)( -1 < result < 1)
-LoGetSideDeviation()     -- (args - 0,results - 1)( -1 < result < 1)
-LoGetSlipBallPosition()  -- (args - 0,results - 1)( -1 < result < 1)
-LoGetBasicAtmospherePressure() -- (args - 0,results - 1) (mm hg)
-]]--
-
 moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function()
-  local pilot = LoGetPilotName()                -- (args - 0, results - 1 (text string))
-  local alt = LoGetAltitudeAboveSeaLevel()      -- (args - 0, results - 1 (meters))
-  local altR = LoGetAltitudeAboveGroundLevel()  -- (args - 0, results - 1 (meters))
-  local vvi = LoGetVerticalVelocity()           -- (args - 0, results - 1( m/s))
-  local ias = LoGetIndicatedAirSpeed()          -- (args - 0, results - 1 (m/s))
-  local tas = LoGetTrueAirSpeed()               -- (args - 0, results - 1 (m/s))
-  local mach = LoGetMachNumber()                -- (args - 0, results - 1)
-  local eng = LoGetEngineInfo()
-  local fuel = eng.fuel_internal + eng.fuel_external
+	_pilot = LoGetPilotName()
+	local self = LoGetSelfData()
+	local plane = LoGetSelfPlane()
 
-  if ( mach < 0.5 ) then mach = 0.5 end
+	local altS = LoGetAltitudeAboveSeaLevel()
+	local altG = LoGetAltitudeAboveGroundLevel()
+	local alt = altS
+	local vvi = LoGetVerticalVelocity()
+	local ias = LoGetIndicatedAirSpeed()
+	local tas = LoGetTrueAirSpeed()
+	local mach = LoGetMachNumber()
+	local fuel = LoGetFuelAll()
+	local aoa = LoGetAngleOfAttack()
+	local gload = LoGetGLoad()
 
-  local self = LoGetSelfData()
-  local plane = self.Name
+	_barFuel = BarFuel(fuel, plane)
+	_barGLoad = BarGLoad(gload)
+	_barVVI = BarVVI(vvi, plane)
 
-  _pilot = string.format("%16s", pilot)
-  -- US planes (knots and feets)
-  if plane == "A-10A" or plane == "F-15C" or plane == "MiG-29G" then
-    ias = ias * 1.94384449  -- knots
-    tas = tas * 1.94384449  -- knots
-    alt = alt * 3.2808399   -- feets
-    altR = altR * 3.2808399 -- feets
-    vvi = vvi * 196.850394  -- feets per minute
-    fuel = fuel * 2.20462262 -- pounds
-    
-    _indicatedAirspeed = string.format("%4d", ias)
-    -- altitude over 10000 feets is shown in hundreds
-    if alt < 10000 then _altitude = string.format("%4d", alt)
-    else _altitude = string.format("%4d", alt / 100) end
-    -- vertical velocity is cut to 6000 fpm as on instruments
-    if vvi > 6000 then vvi = 6000
-    elseif vvi < -6000 then vvi = -6000 end
-    _verticalVelocity = string.format(" %4.1f", vvi/1000)
-   
-    -- only A-10A has radar altimeter
-    if plane == "A-10A" or plane == "MiG-29G" then
-      -- radar altimeter is working to 5000 feets then baro
-      if altR < 5000 then _altitudeR = string.format("%4d", altR)
-      else _altitudeR = _altitude end
-    elseif plane == "F-15C" then
-      -- F-15C has TAS,GS and mach number (I don't want to calculete GS right now)
-      _trueAirspeed = string.format("%4d", tas)
-      _machNumber = string.format("%.2f", mach)
-    end
-    if plane == "MiG-29G" then
-      _machNumber = string.format("%.2f", mach)
-    end
-    
-    -- we want fuel in hundreds
-    fuel = fuel / 100
-    _fuel = string.format("%3.1f", math.floor(fuel));
-  -- RU planes
-  elseif plane == "MiG-29A" or plane == "MiG-29S" or
-         plane == "Su-25" or plane == "Su-25T" or
-         plane == "Su-27" or plane == "Su-33" then
-    ias = ias * 3.6 -- km/h
-    tas = tas * 3.6
+	--[[ US PLANES ]]--
+	if plane == "A-10A" or plane == "F-15C" or plane == "MiG-29G" then
 
-    -- tens like on hud
-    ias = math.floor(ias / 10) * 10
-    tas = math.floor(tas / 10) * 10
-    _indicatedAirspeed = string.format("%4d", ias)
-    
-    if plane ~= "Su-27" or plane ~= "MiG-29A" or plane ~= "MiG-29S" then
-      -- tas from 400 like on instrument
-      if( tas < 400 ) then tas = 400 end
-      _trueAirspeed = string.format("%4d", tas)
-    elseif plane ~= "Su-25T" then
-      -- Su-25T does not have mach meter
-      _machNumber = string.format("%.2f", mach)
-    end
+		ias = ias * 1.94384449		-- knots
+		tas = tas * 1.94384449		-- knots
+		alt = alt * 3.2808399		-- feets
+		altS = altS * 3.2808399		-- feets
+		altG = altG * 3.2808399		-- feets
+		vvi = vvi * 196.850394		-- feets per minute
+		fuel = math.floor(fuel * 0.022) * 100
+		aoa = aoa + 10
 
-    -- tens like on hud
-    alt = math.floor(alt / 10) * 10
-    _altitude = string.format("%4d", alt)
-    if altR < 1500 then _altitudeR = string.format("%4d", altR)
-    else _altitudeR = _altitude end
-    _verticalVelocity = string.format("%4d", vvi)
-    _fuel = string.format("%3.1f", fuel/100)
-  end
+		if vvi > 6000 then vvi = 6000
+		elseif vvi < -6000 then vvi = -6000 end
+		vvi = vvi / 1000
+
+		--[[ RADAR ALTIMITER ]]--
+		if plane == "A-10A" or plane == "MiG-29G" then
+			_radarAltitude = 1
+			if altG > 5000 then _radarAltitude = 0 end
+		end
+		fuel = fuel / 100
+		_fuel = string.format("%3.1f", math.floor(fuel));
+
+	--[[ RU PLANES ]]--
+	elseif	plane == "MiG-29A" or plane == "MiG-29S" or
+			plane == "Su-25" or plane == "Su-25T" or
+			plane == "Su-27" or plane == "Su-33" then
+
+		ias = math.floor(ias * 0.36) * 10
+		tas = math.floor(tas * 0.36) * 10
+		if( tas < 400 ) then tas = 400 end
+		alt = math.floor(alt * 0.1) * 10
+		if altG > 1500 then _radarAltitude = 0
+		else _radarAltitude = 1 end
+		fuel = math.floor(fuel / 10) * 10
+		if _radarAltitude == 0 then alt = math.floor(alt / 10) * 10 end
+	end
+
+	if _radarAltitude == 1 then
+		alt = altG
+	end
+
+	if alt >= 10000 then
+		alt = math.floor(alt / 100)
+		_altitude = string.format("%3d ", alt)
+	else _altitude = string.format("%4d", alt) end
+	_altitudeG = string.format("%6d", altG)
+	_altitudeS = string.format("%6d", altS)
+
+	-- AOA
+	if plane == "A-10A" then
+		if aoa < 0 then aoa = 0
+		elseif aoa > 30 then aoa = 30 end
+	elseif plane == "F-15C" then
+		if aoa < 0 then aoa = 0
+		elseif aoa > 45 then aoa = 45 end
+	else
+		if aoa < -10 then aoa = -10
+		elseif aoa > 40 then aoa = 40 end
+	end
+	if math.abs(aoa) >= 10 then _AoA = string.format(" %2d ", aoa)
+	else _AoA = string.format("%4.1f", aoa) end
+
+	if fuel > 100 then _fuel = string.format("%4d", fuel)
+	else _fuel = string.format("%4.1f", fuel) end
+
+	-- G LOAD
+	if plane == "A-10A" then
+		if gload < -5 then gload = -5
+		elseif gload > 10 then gload = 10 end
+	end
+	if math.abs(gload) > 10 then _gLoad = string.format(" %2d ", gload)
+	else _gLoad = string.format("%4.1f", gload) end
+	_indicatedAirspeed = string.format("%4d", ias)
+
+	-- MACH NUMBER
+	if allowMach(plane) then
+		if ( mach < 0.5 ) then mach = 0.5 end
+		_machNumber = string.format("%4.2f", mach)
+	end
+	-- TAS
+	if allowTAS(plane) then _trueAirspeed = string.format("%4d", tas) end
+
+	if vvi >= 100 then _verticalVelocity = string.format("%4d", vvi)
+	elseif vvi >= 10 then _verticalVelocity = string.format("%3d ", vvi)
+	elseif vvi <= -10 then _verticalVelocity = string.format("%3d ", vvi)
+	else _verticalVelocity = string.format("%4.1f", vvi) end
 end
 
 defineString("_PILOTNAME", function() return _pilot .. string.char(0) end, 16, "String", "Pilot Name")
-defineString("_ALTITUDE", function() return _altitude .. string.char(0) end, 4, "String", "Altitude above Sea Level")
-defineString("_ALTITUDE_RADAR", function() return _altitudeR .. string.char(0) end, 4, "String", "Altitude above Ground")
-defineString("_VERTICAL_VELOCITY", function() return _verticalVelocity .. string.char(0) end, 4, "String", "Vertical Velocity")
-defineString("_INDICATED_AIRSPEED", function() return _indicatedAirspeed .. string.char(0) end, 4, "String", "Indicated Airspeed")
-defineString("_TRUE_AIRSPEED", function() return _trueAirspeed .. string.char(0) end, 4, "String", "True Airspeed")
-defineString("_MACHNUMBER", function() return _machNumber .. string.char(0) end, 4, "String", "Mach Number")
-defineString("_FUELALL", function() return _fuel .. string.char(0) end, 4, "String", "Fuel Remaining")
+defineString("FC3_ALTITUDE", function() return _altitude .. string.char(0) end, 4, "String", "Altitude")
+defineString("FC3_ALTITUDE_GROUND", function() return _altitudeG .. string.char(0) end, 6, "String", "Altitude above Ground")
+defineString("FC3_ALTITUDE_SEA", function() return _altitudeS .. string.char(0) end, 6, "String", "Altitude above Sea Level")
+defineString("FC3_ANGLE_OF_ATTACK", function() return _AoA .. string.char(0) end, 4, "String", "Angle of Attack")
+defineString("FC3_FUEL_ALL", function() return _fuel .. string.char(0) end, 4, "String", "Fuel Remaining")
+defineString("FC3_G_LOAD", function() return _gLoad .. string.char(0) end, 4, "String", "G Load")
+defineString("FC3_INDICATED_AIRSPEED", function() return _indicatedAirspeed .. string.char(0) end, 4, "String", "Indicated Airspeed")
+defineString("FC3_MACH_NUMBER", function() return _machNumber .. string.char(0) end, 4, "String", "Mach Number")
+defineString("FC3_TRUE_AIRSPEED", function() return _trueAirspeed .. string.char(0) end, 4, "String", "True Airspeed")
+defineString("FC3_VERTICAL_VELOCITY", function() return _verticalVelocity .. string.char(0) end, 4, "String", "Vertical Velocity")
+
+defineIntegerFromGetter("FC3_RADAR_ALTITUDE", function() return _radarAltitude end, 1, "On/Off", "Radar Altitude")
+defineIntegerFromGetter("FC3_FUEL_BAR", function() return _barFuel end, 16, "Bar", "Fuel Bar")
+defineIntegerFromGetter("FC3_G_LOAD_BAR", function() return _barGLoad end, 16, "Bar", "G Load Bar")
+defineIntegerFromGetter("FC3_VVI_BAR", function() return _barVVI end, 16, "Bar", "Vertical Velocity Bar")
 
 BIOS.protocol.endModule()
