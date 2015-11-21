@@ -929,17 +929,17 @@ function BIOS.util.defineFloatFromGetter(msg, getter, limits, category, descript
 		control_type = "metadata",
 		inputs = {},
 		outputs = {
-			{ ["type"] = "integer",
+			{ ["type"] = "float",
 			  suffix = "",
 			  address = alloc.address,
 			  mask = alloc.mask,
 			  shift_by = alloc.shiftBy,
 			  max_value = 65535,
-			  description = description
+			  description = description,
+			  value_range = limits
 			}
 		}
 	}
-	--document { msg = msg, category = category, description = description, msg_type = "int", value_type = "int", value_range = limits, can_set = false, actions = {}, address = alloc.address }
 end
 
 function BIOS.util.define8BitFloatFromGetter(msg, getter, limits, category, description)
@@ -956,15 +956,15 @@ function BIOS.util.define8BitFloatFromGetter(msg, getter, limits, category, desc
 		control_type = "metadata",
 		inputs = {},
 		outputs = {
-			{ ["type"] = "integer",
+			{ ["type"] = "float",
 			  suffix = "",
 			  address = alloc.address,
 			  mask = alloc.mask,
 			  shift_by = alloc.shiftBy,
 			  max_value = 255,
-			  description = description
+			  description = description,
+			  value_range = limits
 			}
 		}
 	}
-	--document { msg = msg, category = category, description = description, msg_type = "int", value_type = "int", value_range = limits, can_set = false, actions = {}, address = alloc.address }
 end
