@@ -915,3 +915,56 @@ function BIOS.util.defineIntegerFromGetter(msg, getter, maxValue, category, desc
 		}
 	}
 end
+
+function BIOS.util.defineFloatFromGetter(msg, getter, limits, category, description)
+	local intervalLength = limits[2] - limits[1]
+	local alloc = moduleBeingDefined.memoryMap:allocateInt { maxValue = 65535 }
+	moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function(dev0)
+		alloc:setValue(((getter() - limits[1]) / intervalLength) * 65535)
+	end
+	document {
+		identifier = msg,
+		category = category,
+		description = description,
+		control_type = "metadata",
+		inputs = {},
+		outputs = {
+			{ ["type"] = "integer",
+			  suffix = "",
+			  address = alloc.address,
+			  mask = alloc.mask,
+			  shift_by = alloc.shiftBy,
+			  max_value = 65535,
+			  description = description
+			}
+		}
+	}
+	--document { msg = msg, category = category, description = description, msg_type = "int", value_type = "int", value_range = limits, can_set = false, actions = {}, address = alloc.address }
+end
+
+function BIOS.util.define8BitFloatFromGetter(msg, getter, limits, category, description)
+	-- same as defineFloat, but only allocates an 8-bit int
+	local intervalLength = limits[2] - limits[1]
+	local alloc = moduleBeingDefined.memoryMap:allocateInt { maxValue = 255 }
+	moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function(dev0)
+		alloc:setValue(((getter() - limits[1]) / intervalLength) * 255)
+	end
+	document {
+		identifier = msg,
+		category = category,
+		description = description,
+		control_type = "metadata",
+		inputs = {},
+		outputs = {
+			{ ["type"] = "integer",
+			  suffix = "",
+			  address = alloc.address,
+			  mask = alloc.mask,
+			  shift_by = alloc.shiftBy,
+			  max_value = 255,
+			  description = description
+			}
+		}
+	}
+	--document { msg = msg, category = category, description = description, msg_type = "int", value_type = "int", value_range = limits, can_set = false, actions = {}, address = alloc.address }
+end
