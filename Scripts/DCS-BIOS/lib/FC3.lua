@@ -1,5 +1,7 @@
-local defineString = BIOS.util.defineString
+local define8BitFloatFromGetter = BIOS.util.define8BitFloatFromGetter
+local defineFloatFromGetter = BIOS.util.defineFloatFromGetter
 local defineIntegerFromGetter = BIOS.util.defineIntegerFromGetter
+local defineString = BIOS.util.defineString
 
 local _pilot = " -------------- "
 local _altitude = " -- "
@@ -17,21 +19,22 @@ local _barFuel = 0
 local _barGLoad = 0
 local _barVVI = 8
 
+local _adiBank = 0.0
+local _adiPitch = 0.0
+local _adiYaw = 0.0
+
 local function LoGetSelfPlane()
 	local self = LoGetSelfData()
-
 	return self.Name
 end
 
 local function LoGetFuelAll()
 	local eng = LoGetEngineInfo()
-
 	return eng.fuel_internal + eng.fuel_external
 end
 
 local function LoGetGLoad()
 	local au = LoGetAccelerationUnits()
-
 	return au.y
 end
 
@@ -199,6 +202,8 @@ moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function()
 	elseif vvi >= 10 then _verticalVelocity = string.format("%3d ", vvi)
 	elseif vvi <= -10 then _verticalVelocity = string.format("%3d ", vvi)
 	else _verticalVelocity = string.format("%4.1f", vvi) end
+
+	_adiPitch, _adiBank, _adiYaw = LoGetADIPitchBankYaw()
 end
 
 defineString("_PILOTNAME", function() return _pilot .. string.char(0) end, 16, "String", "Pilot Name")
@@ -217,5 +222,12 @@ defineIntegerFromGetter("FC3_RADAR_ALTITUDE", function() return _radarAltitude e
 defineIntegerFromGetter("FC3_FUEL_BAR", function() return _barFuel end, 16, "Bar", "Fuel Bar")
 defineIntegerFromGetter("FC3_G_LOAD_BAR", function() return _barGLoad end, 16, "Bar", "G Load Bar")
 defineIntegerFromGetter("FC3_VVI_BAR", function() return _barVVI end, 16, "Bar", "Vertical Velocity Bar")
+
+define8BitFloatFromGetter("FC3_ADI_BANK", function() return _adiBank end, {-1, 1}, "Float", "ADI Bank")
+define8BitFloatFromGetter("FC3_ADI_PITCH", function() return _adiPitch end, {-1, 1}, "Float", "ADI Pitch")
+define8BitFloatFromGetter("FC3_ADI_YAW", function() return _adiYaw end, {-1, 1}, "Float", "ADI Yaw")
+define8BitFloatFromGetter("FC3_GLIDE_DEVIATION", LoGetGlideDeviation(), {-1, 1}, "Float", "Glide Deviation")
+define8BitFloatFromGetter("FC3_SIDE_DEVIATION", LoGetSideDeviation(), {-1, 1}, "Float", "Side Deviation")
+define8BitFloatFromGetter("FC3_SLIP_BALL_POSITION", LoGetSlipBallPosition(), {-1, 1}, "Float", "Slip Ball Position")
 
 BIOS.protocol.endModule()
